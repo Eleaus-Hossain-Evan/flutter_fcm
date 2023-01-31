@@ -1,22 +1,38 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easylogger/flutter_logger.dart';
-import 'package:flutter_fcm/screen/home_screen.dart';
-import 'package:flutter_fcm/service/local_notification.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_fcm/application/notification_service/firebase_push_notification_provider.dart';
+import 'package:flutter_fcm/application/route/route_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'firebase_options.dart';
-import 'service/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Logger.init(true, isShowTime: false, isShowFile: false);
+  Logger.init(
+    true, // isEnable ，if production ，please false
+    isShowFile: false, // In the IDE, whether the file name is displayed
+    isShowTime: false, // In the IDE, whether the time is displayed
+
+    phoneVerbose: Colors.white70,
+    phoneDebug: const Color(0xffADD8E6),
+    phoneInfo: Colors.greenAccent.shade400,
+    phoneWarn: Colors.yellowAccent,
+    phoneError: Colors.redAccent.shade200,
+  );
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  await NotificationService.initialize();
+  final container = ProviderContainer();
+  final notificationService = container.read(firebasePushNotificationProvider);
 
-  runApp(const ProviderScope(child: MyApp()));
+  // await NotificationService.initialize();
+
+  runApp(
+    ProviderScope(
+      parent: container,
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends HookConsumerWidget {
@@ -24,36 +40,12 @@ class MyApp extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    bool notification = false;
-
-    init() async {
-      // notification = (await LocalNotification.instance.initialize())!;
-    }
-
-    useEffect(() {
-      // FCM.instance.getInitialMessage();
-
-      // final sub = FCM.instance.onNotificationOpenedApp.listen((message) {
-      //   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      //     content: Text("App was opened by a notification"),
-      //     duration: Duration(seconds: 10),
-      //     backgroundColor: Colors.green,
-      //   ));
-      //   FCM.instance.handleMessage(message);
-      // });
-
-      init();
-
-      // return sub.cancel;
-    }, const []);
-
-    // Logger.v("Local notification: $notification");
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const HomeScreen(),
+      routerConfig: ref.watch(routerProvider),
     );
   }
 }
