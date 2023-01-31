@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SignInWithPhone extends StatefulWidget {
+  static const route = "/phone";
   const SignInWithPhone({Key? key}) : super(key: key);
 
   @override
